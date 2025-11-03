@@ -7,7 +7,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
+
+var validate = validator.New()
 
 func GetArticleByID(c *gin.Context) {
 	id := c.Param("id")
@@ -36,6 +39,25 @@ func CreateArticle(c *gin.Context) {
 	// Bind JSON to struct
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// validation
+	if err := validate.Struct(input); err != nil {
+		errors := make(map[string]string)
+		for _, e := range err.(validator.ValidationErrors) {
+			switch e.Field() {
+			case "Title":
+				errors["title"] = "Title is required and must be at least 20 characters long"
+			case "Content":
+				errors["content"] = "Content is required and must be at least 200 characters long"
+			case "Category":
+				errors["category"] = "Category is required and must be at least 3 characters long"
+			case "Status":
+				errors["status"] = "Status is required and must be either 'publish', 'draft', or 'thrash'"
+			}
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"validation_error": errors})
 		return
 	}
 
@@ -111,6 +133,24 @@ func UpdateArticle(c *gin.Context) {
 	var updateData models.Post
 	if err := c.ShouldBindJSON(&updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := validate.Struct(updateData); err != nil {
+		errors := make(map[string]string)
+		for _, e := range err.(validator.ValidationErrors) {
+			switch e.Field() {
+			case "Title":
+				errors["title"] = "Title is required and must be at least 20 characters long"
+			case "Content":
+				errors["content"] = "Content is required and must be at least 200 characters long"
+			case "Category":
+				errors["category"] = "Category is required and must be at least 3 characters long"
+			case "Status":
+				errors["status"] = "Status is required and must be either 'publish', 'draft', or 'thrash'"
+			}
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"validation_error": errors})
 		return
 	}
 
