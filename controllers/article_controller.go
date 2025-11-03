@@ -96,3 +96,64 @@ func GetAllArticles(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+func UpdateArticle(c *gin.Context) {
+	id := c.Param("id")
+
+	var article models.Post
+
+	if err := database.DB.First(&article, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Article not found"})
+		return
+	}
+
+	// get data from body request
+	var updateData models.Post
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// update field
+	article.Title = updateData.Title
+	article.Content = updateData.Content
+	article.Category = updateData.Category
+	article.Status = updateData.Status
+
+	if err := database.DB.Save(&article).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Article updated sucessfully",
+		"data": gin.H{
+			"title":    article.Title,
+			"content":  article.Content,
+			"category": article.Category,
+			"status":   article.Status,
+		},
+	})
+
+}
+
+// delete post
+func DeleteArticle(c *gin.Context) {
+	id := c.Param("id")
+
+	var article models.Post
+
+	if err := database.DB.First(&article, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Article not found"})
+		return
+	}
+
+	if err := database.DB.Delete(&article).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Article deleted successfully",
+	})
+}
