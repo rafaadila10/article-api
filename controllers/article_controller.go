@@ -7,10 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
-
-var validate = validator.New()
 
 func GetArticleByID(c *gin.Context) {
 	id := c.Param("id")
@@ -34,44 +31,17 @@ func GetArticleByID(c *gin.Context) {
 }
 
 func CreateArticle(c *gin.Context) {
-	var input models.Post
+	val, _ := c.Get("validated_body")
+	article := val.(*models.Post)
 
-	// Bind JSON to struct
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := database.DB.Create(&article).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save post."})
 		return
 	}
 
-	// validation
-	if err := validate.Struct(input); err != nil {
-		errors := make(map[string]string)
-		for _, e := range err.(validator.ValidationErrors) {
-			switch e.Field() {
-			case "Title":
-				errors["title"] = "Title is required and must be at least 20 characters long"
-			case "Content":
-				errors["content"] = "Content is required and must be at least 200 characters long"
-			case "Category":
-				errors["category"] = "Category is required and must be at least 3 characters long"
-			case "Status":
-				errors["status"] = "Status is required and must be either 'publish', 'draft', or 'thrash'"
-			}
-		}
-		c.JSON(http.StatusBadRequest, gin.H{"validation_error": errors})
-		return
-	}
-
-	// Save to db
-	result := database.DB.Create(&input)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
-	}
-
-	// Success Response
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Post have been added.",
-		"data":    input,
+		"data":    article,
 	})
 }
 
@@ -123,42 +93,18 @@ func UpdateArticle(c *gin.Context) {
 	id := c.Param("id")
 
 	var article models.Post
-
 	if err := database.DB.First(&article, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Article not found"})
 		return
 	}
 
-	// get data from body request
-	var updateData models.Post
-	if err := c.ShouldBindJSON(&updateData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	val, _ := c.Get("validated_body")
+	input := val.(*models.Post)
 
-	if err := validate.Struct(updateData); err != nil {
-		errors := make(map[string]string)
-		for _, e := range err.(validator.ValidationErrors) {
-			switch e.Field() {
-			case "Title":
-				errors["title"] = "Title is required and must be at least 20 characters long"
-			case "Content":
-				errors["content"] = "Content is required and must be at least 200 characters long"
-			case "Category":
-				errors["category"] = "Category is required and must be at least 3 characters long"
-			case "Status":
-				errors["status"] = "Status is required and must be either 'publish', 'draft', or 'thrash'"
-			}
-		}
-		c.JSON(http.StatusBadRequest, gin.H{"validation_error": errors})
-		return
-	}
-
-	// update field
-	article.Title = updateData.Title
-	article.Content = updateData.Content
-	article.Category = updateData.Category
-	article.Status = updateData.Status
+	article.Title = input.Title
+	article.Content = input.Content
+	article.Category = input.Category
+	article.Status = input.Status
 
 	if err := database.DB.Save(&article).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -166,15 +112,9 @@ func UpdateArticle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Article updated sucessfully",
-		"data": gin.H{
-			"title":    article.Title,
-			"content":  article.Content,
-			"category": article.Category,
-			"status":   article.Status,
-		},
+		"message": "Article updated successfully.",
+		"data":    article,
 	})
-
 }
 
 // delete post
