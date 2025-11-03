@@ -5,25 +5,25 @@
 ### 1️⃣ Clone Repository
 ```bash
 git clone https://github.com/rafaadila10/article-api.git
-cd article-api
+cd article-api```
 
 ### 2️⃣ Install Dependency
 ```bash
-go mod tidy
+go mod tidy```
 
 ### 3️⃣ Buat Database di MySQL
 Buka terminal MySQL atau phpMyAdmin, lalu jalankan:
 ```bash
-CREATE DATABASE article;
+CREATE DATABASE article;```
 
 ### 4️⃣ Cek Koneksi Database
 Pastikan di file database/connection.go sudah sesuai:
 ```bash
-dsn := "root:@tcp(127.0.0.1:3306)/article?charset=utf8mb4&parseTime=True&loc=Local"
+dsn := "root:@tcp(127.0.0.1:3306)/article?charset=utf8mb4&parseTime=True&loc=Local"```
 
 ### 5️⃣ Jalankan Server
 ```bash
-go run main.go
+go run main.go```
 
 ### 📚 Endpoint API
 | Method | Endpoint                  | Deskripsi                           |
