@@ -75,6 +75,14 @@ Sebelum membuat atau mengubah artikel, pastikan JSON memenuhi syarat berikut:
 
 ---
 
+## 🧰 Postman Collection
+File Postman Collection tersedia di root project:
+```bash
+Article-API.postman_collection.json
+```
+
+---
+
 ## 🧑‍💻 Dibuat oleh
 **Mohammad Rafa Adila**  
 Fullstack Web Developer
