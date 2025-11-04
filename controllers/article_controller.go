@@ -73,6 +73,7 @@ func GetAllArticles(c *gin.Context) {
 
 	// Field response
 	type PostResponse struct {
+		ID       uint   `json:"id"`
 		Title    string `json:"title"`
 		Content  string `json:"content"`
 		Category string `json:"category"`
@@ -82,6 +83,7 @@ func GetAllArticles(c *gin.Context) {
 	var response []PostResponse
 	for _, post := range posts {
 		response = append(response, PostResponse{
+			ID:       post.ID,
 			Title:    post.Title,
 			Content:  post.Content,
 			Category: post.Category,
