@@ -34,6 +34,9 @@ func CreateArticle(c *gin.Context) {
 	val, _ := c.Get("validated_body")
 	article := val.(*models.Post)
 
+	// makesure ID zero for auto-increment
+	article.ID = 0
+
 	if err := database.DB.Create(&article).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save post."})
 		return

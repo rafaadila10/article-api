@@ -49,15 +49,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/article/",
+					"raw": "http://localhost:8080/article",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"article",
-						""
+						"article"
 					]
 				}
 			},
@@ -69,14 +68,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:8080/article/10",
+					"raw": "localhost:8080/article/9",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
 						"article",
-						"10"
+						"9"
 					]
 				}
 			},
