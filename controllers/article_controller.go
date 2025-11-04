@@ -5,6 +5,7 @@ import (
 	"article-api/models"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,28 +51,39 @@ func CreateArticle(c *gin.Context) {
 
 // GET Posts with pagination
 func GetAllArticles(c *gin.Context) {
+	// Get query params
+	status := c.Query("status")
 	limitParam := c.DefaultQuery("limit", "10")
 	offsetParam := c.DefaultQuery("offset", "0")
 
-	// covert to int
+	// Convert to int
 	limit, err1 := strconv.Atoi(limitParam)
 	offset, err2 := strconv.Atoi(offsetParam)
-
 	if err1 != nil || err2 != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Limit and Offset must be numeric"})
 		return
 	}
 
 	var posts []models.Post
+	var total int64
 
-	// Get data from db with limit and offset
-	result := database.DB.Limit(limit).Offset(offset).Find(&posts)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	db := database.DB.Model(&models.Post{})
+
+	// filter status
+	if status != "" {
+		db = db.Where("LOWER(status) = ?", strings.ToLower(status))
+	}
+
+	// count total based on filter
+	db.Count(&total)
+
+	// get data by limit & offset
+	if err := db.Limit(limit).Offset(offset).Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Field response
+	// response
 	type PostResponse struct {
 		ID       uint   `json:"id"`
 		Title    string `json:"title"`
@@ -91,7 +103,12 @@ func GetAllArticles(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{
+		"data":   response,
+		"total":  total,
+		"limit":  limit,
+		"offset": offset,
+	})
 }
 
 func UpdateArticle(c *gin.Context) {
